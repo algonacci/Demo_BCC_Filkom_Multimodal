@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bcc-filkom-multimodal",
+  "main": "src/index.tsx",
+  "compatibility_date": "2026-09-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "bcc-filkom.syncloud.my.id",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "kv_namespaces": [
+    {
+      "binding": "RESULTS",
+      "id": "081feaee95264e06a0cede1ad1c598d0"
+    }
+  ],
+  "vars": {
+    "OPENAI_BASE_URL": "https://api.orvix.id/v1",
+    "OPENAI_MODEL": "orvix/grok4.6:free"
+  }
+}
