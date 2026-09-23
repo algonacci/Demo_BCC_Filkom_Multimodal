@@ -1,4 +1,4 @@
-export type Kind = "ktp" | "cv" | "invoice";
+export type Kind = "ktp" | "cv";
 
 export type Field = {
   key: string;
@@ -29,15 +29,6 @@ export const KTP_FIELDS: Field[] = [
   { key: "tanggal_dikeluarkan", label: "Tanggal dikeluarkan", type: "date" },
 ];
 
-export const INVOICE_FIELDS: Field[] = [
-  { key: "supplier", label: "Supplier", type: "string", required: true },
-  { key: "invoice_number", label: "Nomor invoice", type: "string", required: true },
-  { key: "invoice_date", label: "Tanggal", type: "date", required: true },
-  { key: "subtotal", label: "Subtotal", type: "int", required: true },
-  { key: "tax", label: "Pajak", type: "int", required: true },
-  { key: "total", label: "Total", type: "int", required: true },
-];
-
 export const CV_FIELDS: Field[] = [
   { key: "full_name", label: "Nama lengkap", type: "string", required: true },
   { key: "title", label: "Posisi", type: "string" },
@@ -50,7 +41,6 @@ export const CV_FIELDS: Field[] = [
 export const FIELDS: Record<Kind, Field[]> = {
   ktp: KTP_FIELDS,
   cv: CV_FIELDS,
-  invoice: INVOICE_FIELDS,
 };
 
 export type Issue = { field: string; message: string };
@@ -132,33 +122,6 @@ export const validate = (kind: Kind, raw: unknown): Validated => {
     }
 
     data[field.key] = text;
-  }
-
-  if (kind === "invoice") {
-    const items = Array.isArray(source.items) ? source.items : [];
-    data.items = items
-      .map((item) => asRecord(item))
-      .filter((item): item is Record<string, unknown> => item !== null)
-      .map((item) => ({
-        description: typeof item.description === "string" ? item.description : null,
-        quantity: typeof item.quantity === "number" ? item.quantity : null,
-        unit_price: normalizeInt(item.unit_price),
-      }));
-
-    const subtotal = data.subtotal;
-    const tax = data.tax;
-    const total = data.total;
-    if (
-      typeof subtotal === "number" &&
-      typeof tax === "number" &&
-      typeof total === "number" &&
-      subtotal + tax !== total
-    ) {
-      issues.push({
-        field: "total",
-        message: "subtotal + pajak tidak sama dengan total",
-      });
-    }
   }
 
   if (kind === "cv") {

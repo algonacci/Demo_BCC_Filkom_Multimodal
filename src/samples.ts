@@ -44,14 +44,4 @@ export const SAMPLES: Record<Kind, unknown> = {
     education: [],
     extra: [],
   },
-  invoice: {
-    supplier: "PT ABC",
-    invoice_number: "INV-2026-0914",
-    invoice_date: "2026-09-14",
-    subtotal: 15000000,
-    tax: 1500000,
-    total: 16500000,
-    items: [{ description: "Product A", quantity: 10, unit_price: 500000 }],
-    needs_review: false,
-  },
 };

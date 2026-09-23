@@ -20,13 +20,6 @@ const PROMPTS: Record<Kind, string> = {
     "Isi field umum dulu. Informasi lain masuk extra per section.",
     "Field yang tidak tersedia harus null. Jangan membuang informasi dan jangan mengarang.",
   ].join(" "),
-  invoice: [
-    "Extract this invoice as JSON only.",
-    "Fields: supplier, invoice_number, invoice_date (YYYY-MM-DD),",
-    "subtotal, tax, total (IDR integers),",
-    "items: [{description, quantity, unit_price}].",
-    "Unread fields must be null. Do not guess or fix totals.",
-  ].join(" "),
 };
 
 export type ExtractResult = Validated & {

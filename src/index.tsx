@@ -28,7 +28,7 @@ const MAX_BYTES = 4_000_000;
 const RESULT_COOKIE = "demo-result";
 const results = new Map<string, Saved>();
 
-const isKind = (value: unknown): value is Kind => value === "ktp" || value === "cv" || value === "invoice";
+const isKind = (value: unknown): value is Kind => value === "ktp" || value === "cv";
 
 const loadResult = async (id: string | undefined, kv?: KVNamespace) => {
   if (!id) return undefined;

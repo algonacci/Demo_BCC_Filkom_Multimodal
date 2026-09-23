@@ -164,11 +164,6 @@ export const Page: FC<{
       title: "CV jadi profil kandidat.",
       description: "Unggah CV PDF untuk menyusun identitas, pengalaman, pendidikan, dan keahlian.",
     },
-    invoice: {
-      eyebrow: "Finance OCR",
-      title: "Invoice jadi record siap pakai.",
-      description: "Unggah invoice untuk membaca supplier, nomor dokumen, item, pajak, dan total.",
-    },
   }[kind];
 
   return (
@@ -209,7 +204,7 @@ export const Page: FC<{
               ← Semua fitur
             </a>
             <span class="rounded-full bg-orange-500 px-4 py-2 text-white">
-              {kind === "ktp" ? "KTP" : kind === "cv" ? "CV" : "Invoice"}
+              {kind === "ktp" ? "KTP" : "CV"}
             </span>
           </nav>
 
@@ -221,13 +216,16 @@ export const Page: FC<{
 
           <section class="space-y-5">
             <article
-              class="flex min-h-[32rem] flex-col overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-orange-100"
+              class={`flex flex-col overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/60 ${preview ? "min-h-[36rem]" : ""}`}
               data-drop
             >
-              <div class="flex items-center justify-between gap-3 px-5 py-4">
-                <h2 class="truncate font-extrabold" data-label>
+              <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
+                <div>
+                  <p class="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">File sumber</p>
+                  <h2 class="mt-1 truncate font-extrabold" data-label>
                   {fileName || "Dokumen"}
-                </h2>
+                  </h2>
+                </div>
                 <button
                   class={`rounded-full px-3 py-1 text-xs font-bold text-slate-400 hover:bg-rose-50 hover:text-rose-500 ${preview ? "" : "hidden"}`}
                   data-action
@@ -238,28 +236,30 @@ export const Page: FC<{
                 </button>
               </div>
               <label
-                class={`min-h-0 flex-1 cursor-pointer ${preview ? "hidden" : ""}`}
+                class={`cursor-pointer p-5 sm:p-7 ${preview ? "hidden" : ""}`}
                 data-empty
               >
                 <input
-                  class="sr-only"
+                  class="hidden"
                   data-file
                   type="file"
                   name="file"
                   accept="image/*,application/pdf"
                   required
+                  style="display:none"
                 />
-                <span class="grid h-full place-items-center bg-orange-50 px-8 text-center">
-                  <span>
-                    <span class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-white text-2xl text-orange-500 shadow-sm">
-                      +
+                <span class="grid min-h-64 place-items-center rounded-[1.5rem] border-2 border-dashed border-slate-200 bg-slate-50 px-8 text-center transition hover:border-orange-300 hover:bg-orange-50/40">
+                  <span class="max-w-md">
+                    <span class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-orange-500 text-2xl font-light text-white shadow-lg shadow-orange-200">
+                      ↑
                     </span>
-                    <span class="mt-4 block text-lg font-extrabold text-slate-900">
-                      Pilih {kind === "ktp" ? "KTP" : kind === "cv" ? "CV PDF" : "invoice"}
+                    <span class="mt-5 block text-lg font-extrabold text-slate-900">
+                      Pilih {kind === "ktp" ? "KTP" : "CV PDF"}
                     </span>
-                    <span class="mt-1 block text-sm text-slate-400" data-hint>
-                      Klik atau jatuhkan file di sini
+                    <span class="mt-2 block text-sm leading-6 text-slate-500" data-hint>
+                      Klik untuk memilih atau jatuhkan file di area ini
                     </span>
+                    <span class="mt-4 inline-flex rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-400 shadow-sm">Maksimal 4 MB</span>
                   </span>
                 </span>
               </label>
@@ -395,7 +395,6 @@ const CvWorkspace: FC<{ data: Record<string, unknown> }> = ({ data }) => {
 const menus: { kind: Kind; title: string; eyebrow: string; description: string; tone: string }[] = [
   { kind: "ktp", title: "Ekstraksi KTP", eyebrow: "Vision OCR", description: "Ubah foto identitas menjadi record terstruktur dan tandai field yang perlu ditinjau.", tone: "from-orange-500 to-amber-400" },
   { kind: "cv", title: "Parser CV", eyebrow: "Document AI", description: "Unggah CV PDF, susun profil, pengalaman, pendidikan, skill, dan section tambahan.", tone: "from-sky-500 to-cyan-400" },
-  { kind: "invoice", title: "Ekstraksi Invoice", eyebrow: "Finance OCR", description: "Baca supplier, nomor dokumen, item, pajak, dan total untuk proses administrasi.", tone: "from-violet-500 to-fuchsia-400" },
 ];
 
 export const Home: FC = () => (

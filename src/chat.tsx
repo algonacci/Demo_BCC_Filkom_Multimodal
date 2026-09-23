@@ -25,9 +25,7 @@ const bubble = (role, content) => {
   return row;
 };
 
-form?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const content = input.value.trim();
+const sendMessage = async (content) => {
   if (!content || send.disabled) return;
   history.push({ role: 'user', content });
   bubble('user', content);
@@ -51,6 +49,11 @@ form?.addEventListener('submit', async (event) => {
     send.disabled = false;
     input.focus();
   }
+};
+
+form?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  await sendMessage(input.value.trim());
 });
 
 let recorder;
@@ -78,8 +81,8 @@ mic?.addEventListener('click', async () => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Transkripsi gagal');
         input.value = data.text;
-        input.focus();
-        status.textContent = 'Transkrip siap dikirim';
+        status.textContent = 'Transkrip siap, mengirim…';
+        await sendMessage(data.text);
       } catch (error) {
         status.textContent = error.message || 'Transkripsi gagal';
       } finally {
