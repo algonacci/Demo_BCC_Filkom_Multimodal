@@ -2,6 +2,8 @@ import type { Kind } from "./schema";
 
 export const SAMPLES: Record<Kind, unknown> = {
   ktp: {
+    provinsi: "DKI JAKARTA",
+    kota: "JAKARTA BARAT",
     nik: "3171234567890123",
     nama: "MIRA SETIAWAN",
     tempat_lahir: "JAKARTA",
@@ -10,13 +12,37 @@ export const SAMPLES: Record<Kind, unknown> = {
     golongan_darah: "B",
     alamat: "JL. PASTI CEPAT A7/66",
     rt_rw: "007/008",
-    kelurahan_desa: "PEGADUNGAN",
+    kelurahan: "PEGADUNGAN",
     kecamatan: "KALIDERES",
     agama: "ISLAM",
     status_perkawinan: "KAWIN",
     pekerjaan: "PEGAWAI SWASTA",
     kewarganegaraan: "WNI",
     berlaku_hingga: "2017-02-22",
+    dikeluarkan_di: "JAKARTA BARAT",
+    tanggal_dikeluarkan: "2012-12-02",
+  },
+  cv: {
+    full_name: "Nadia Pratama",
+    title: "Software Engineer",
+    email: "nadia@example.com",
+    phone: "+62 812 0000 0000",
+    location: "Malang, Indonesia",
+    summary: "Backend engineer dengan pengalaman membangun layanan web.",
+    links: { linkedin: "linkedin.com/in/nadia" },
+    skills: ["TypeScript", "PostgreSQL", "Docker"],
+    experience: [
+      {
+        company: "PT Contoh Teknologi",
+        title: "Software Engineer",
+        start: "2024",
+        end: null,
+        current: true,
+        highlights: ["Membangun API internal"],
+      },
+    ],
+    education: [],
+    extra: [],
   },
   invoice: {
     supplier: "PT ABC",

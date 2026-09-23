@@ -1,4 +1,4 @@
-export type Kind = "ktp" | "invoice";
+export type Kind = "ktp" | "cv" | "invoice";
 
 export type Field = {
   key: string;
@@ -8,6 +8,8 @@ export type Field = {
 };
 
 export const KTP_FIELDS: Field[] = [
+  { key: "provinsi", label: "Provinsi", type: "string", required: true },
+  { key: "kota", label: "Kota", type: "string", required: true },
   { key: "nik", label: "NIK", type: "string", required: true },
   { key: "nama", label: "Nama", type: "string", required: true },
   { key: "tempat_lahir", label: "Tempat lahir", type: "string", required: true },
@@ -16,13 +18,15 @@ export const KTP_FIELDS: Field[] = [
   { key: "golongan_darah", label: "Golongan darah", type: "string" },
   { key: "alamat", label: "Alamat", type: "string", required: true },
   { key: "rt_rw", label: "RT/RW", type: "string", required: true },
-  { key: "kelurahan_desa", label: "Kelurahan/Desa", type: "string", required: true },
+  { key: "kelurahan", label: "Kelurahan", type: "string", required: true },
   { key: "kecamatan", label: "Kecamatan", type: "string", required: true },
   { key: "agama", label: "Agama", type: "string" },
   { key: "status_perkawinan", label: "Status perkawinan", type: "string" },
   { key: "pekerjaan", label: "Pekerjaan", type: "string", required: true },
   { key: "kewarganegaraan", label: "Kewarganegaraan", type: "string", required: true },
   { key: "berlaku_hingga", label: "Berlaku hingga", type: "date" },
+  { key: "dikeluarkan_di", label: "Dikeluarkan di", type: "string" },
+  { key: "tanggal_dikeluarkan", label: "Tanggal dikeluarkan", type: "date" },
 ];
 
 export const INVOICE_FIELDS: Field[] = [
@@ -34,8 +38,18 @@ export const INVOICE_FIELDS: Field[] = [
   { key: "total", label: "Total", type: "int", required: true },
 ];
 
+export const CV_FIELDS: Field[] = [
+  { key: "full_name", label: "Nama lengkap", type: "string", required: true },
+  { key: "title", label: "Posisi", type: "string" },
+  { key: "email", label: "Email", type: "string" },
+  { key: "phone", label: "Telepon", type: "string" },
+  { key: "location", label: "Lokasi", type: "string" },
+  { key: "summary", label: "Ringkasan", type: "string" },
+];
+
 export const FIELDS: Record<Kind, Field[]> = {
   ktp: KTP_FIELDS,
+  cv: CV_FIELDS,
   invoice: INVOICE_FIELDS,
 };
 
@@ -145,6 +159,21 @@ export const validate = (kind: Kind, raw: unknown): Validated => {
         message: "subtotal + pajak tidak sama dengan total",
       });
     }
+  }
+
+  if (kind === "cv") {
+    const strings = (value: unknown) =>
+      Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+    const records = (value: unknown) =>
+      Array.isArray(value)
+        ? value.map(asRecord).filter((item): item is Record<string, unknown> => item !== null)
+        : [];
+
+    data.links = asRecord(source.links) ?? {};
+    data.skills = strings(source.skills);
+    data.experience = records(source.experience);
+    data.education = records(source.education);
+    data.extra = records(source.extra);
   }
 
   return { data, issues, needsReview: issues.length > 0 };

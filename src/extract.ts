@@ -1,14 +1,24 @@
 import { SAMPLES } from "./samples";
 import { extractJson, type Kind, validate, type Validated } from "./schema";
+import { extractText, getDocumentProxy } from "unpdf";
 
 const PROMPTS: Record<Kind, string> = {
   ktp: [
     "Ekstrak KTP Indonesia menjadi JSON saja.",
-    "Field: nik, nama, tempat_lahir, tanggal_lahir, jenis_kelamin, golongan_darah,",
-    "alamat, rt_rw, kelurahan_desa, kecamatan, agama, status_perkawinan,",
-    "pekerjaan, kewarganegaraan, berlaku_hingga.",
+    "Field: provinsi, kota, nik, nama, tempat_lahir, tanggal_lahir, jenis_kelamin,",
+    "golongan_darah, alamat, rt_rw, kelurahan, kecamatan, agama, status_perkawinan,",
+    "pekerjaan, kewarganegaraan, berlaku_hingga, dikeluarkan_di, tanggal_dikeluarkan.",
     "NIK tetap string 16 digit. Tanggal ISO YYYY-MM-DD.",
     "Field yang tidak terbaca harus null. Jangan menebak.",
+  ].join(" "),
+  cv: [
+    "Rapikan teks CV menjadi satu object JSON saja.",
+    "Fields: full_name, title, email, phone, location, summary, links (object), skills (string[]),",
+    "experience: [{company,title,start,end,current,highlights:string[]}],",
+    "education: [{institution,degree,major,start,end}],",
+    "extra: [{section,items:string[]}].",
+    "Isi field umum dulu. Informasi lain masuk extra per section.",
+    "Field yang tidak tersedia harus null. Jangan membuang informasi dan jangan mengarang.",
   ].join(" "),
   invoice: [
     "Extract this invoice as JSON only.",
@@ -29,9 +39,10 @@ export type ExtractResult = Validated & {
 const fromFallback = (
   kind: Kind,
   latencyMs: number,
-  note: string
+  note: string,
+  useSample = false
 ): ExtractResult => {
-  const validated = validate(kind, SAMPLES[kind]);
+  const validated = validate(kind, useSample ? SAMPLES[kind] : {});
   return {
     ...validated,
     needsReview: true,
@@ -54,7 +65,8 @@ export const extractDocument = async (
     return fromFallback(
       kind,
       Math.round(performance.now() - started),
-      "OPENAI_API_KEY kosong. Demo lanjut pakai fallback JSON."
+      "OPENAI_API_KEY kosong. Demo lanjut pakai fallback JSON.",
+      true
     );
   }
 
@@ -64,6 +76,29 @@ export const extractDocument = async (
     /\/$/,
     ""
   );
+
+  let documentContent: unknown;
+  if (kind === "cv" && file.type === "application/pdf") {
+    try {
+      const pdf = await getDocumentProxy(bytes);
+      const { text } = await extractText(pdf, { mergePages: true });
+      if (!text.trim()) {
+        return fromFallback(kind, Math.round(performance.now() - started), "PDF tidak memiliki teks yang bisa dibaca.");
+      }
+      documentContent = `${PROMPTS.cv}\n\nCV:\n${text.slice(0, 60_000)}`;
+    } catch (error) {
+      return fromFallback(
+        kind,
+        Math.round(performance.now() - started),
+        `PDF gagal dibaca: ${error instanceof Error ? error.message : "format tidak didukung"}`
+      );
+    }
+  } else {
+    documentContent = [
+      { type: "text", text: "Extract every field. JSON only, without Markdown." },
+      { type: "image_url", image_url: { url: dataUrl } },
+    ];
+  }
 
   let response: Response;
   try {
@@ -75,19 +110,17 @@ export const extractDocument = async (
       },
       body: JSON.stringify({
         model,
-        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: PROMPTS[kind] },
           {
             role: "user",
-            content: [
-              { type: "text", text: "Extract every field. JSON only." },
-              { type: "image_url", image_url: { url: dataUrl } },
-            ],
+            content: documentContent,
           },
         ],
+        temperature: 0,
+        max_tokens: 4096,
       }),
-      signal: AbortSignal.timeout(45_000),
+      signal: AbortSignal.timeout(120_000),
     });
   } catch (error) {
     return fromFallback(
@@ -99,7 +132,13 @@ export const extractDocument = async (
 
   const latencyMs = Math.round(performance.now() - started);
   if (!response.ok) {
-    return fromFallback(kind, latencyMs, `Model menolak request (${response.status}).`);
+    const detail = await response.text().catch(() => "");
+    let message = detail.slice(0, 240);
+    try {
+      const parsed = JSON.parse(detail) as { error?: { message?: string }; message?: string };
+      message = parsed.error?.message || parsed.message || message;
+    } catch {}
+    return fromFallback(kind, latencyMs, `Model menolak request (${response.status})${message ? `: ${message}` : "."}`);
   }
 
   const payload = (await response.json()) as {
